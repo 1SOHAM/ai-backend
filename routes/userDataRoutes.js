@@ -1,7 +1,8 @@
 // routes/userDataRoutes.js
 const express = require('express');
 const router = express.Router();
-const UserData = require('../models/userDataModel');
+const UserData = require('../models/UserData');
+
 
 // Check if survey data already exists for user
 router.get('/check/:userId', async (req, res) => {
@@ -32,5 +33,4 @@ router.post('/submit', async (req, res) => {
     res.status(500).json({ message: 'Failed to save survey' });
   }
 });
-
 module.exports = router;
