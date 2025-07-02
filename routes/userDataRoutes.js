@@ -15,22 +15,25 @@ router.get('/check/:userId', async (req, res) => {
   }
 });
 
-// Submit survey data
-router.post('/submit', async (req, res) => {
-  const { userId, answers } = req.body;
+// userDataRoutes.js
+router.post('/save-answer', async (req, res) => {
+  const { userId, questionIndex, answer } = req.body;
 
   try {
-    const existing = await UserData.findOne({ userId });
-    if (existing) {
-      return res.status(400).json({ message: 'Survey already submitted' });
+    let userData = await UserData.findOne({ userId });
+
+    if (!userData) {
+      userData = new UserData({ userId, answers: {} });
     }
 
-    const newData = new UserData({ userId, answers });
-    await newData.save();
-    res.json({ message: 'Survey saved successfully' });
+    userData.answers[questionIndex] = answer;
+    await userData.save();
+
+    res.json({ message: `Answer ${questionIndex + 1} saved` });
   } catch (error) {
-    console.error('Error saving survey:', error);
-    res.status(500).json({ message: 'Failed to save survey' });
+    console.error('Error saving answer:', error);
+    res.status(500).json({ error: 'Failed to save answer' });
   }
 });
+
 module.exports = router;
