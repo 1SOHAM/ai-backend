@@ -16,24 +16,34 @@ router.get('/check/:userId', async (req, res) => {
 });
 
 // userDataRoutes.js
-router.post('/save-answer', async (req, res) => {
+router.post("/save-answer", async (req, res) => {
   const { userId, questionIndex, answer } = req.body;
 
+  if (!userId || questionIndex === undefined || !answer) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
   try {
-    let userData = await UserData.findOne({ userId });
+    const key = `q${questionIndex + 1}`;
 
-    if (!userData) {
-      userData = new UserData({ userId, answers: {} });
-    }
+    // Build dynamic update object
+    const update = {};
+    update[`surveyAnswers.${key}`] = answer;
 
-    userData.answers[questionIndex] = answer;
-    await userData.save();
+    const result = await UserData.findOneAndUpdate(
+      { userId },
+      { $set: update },
+      { new: true, upsert: true }
+    );
 
-    res.json({ message: `Answer ${questionIndex + 1} saved` });
-  } catch (error) {
-    console.error('Error saving answer:', error);
-    res.status(500).json({ error: 'Failed to save answer' });
+    res.json({ message: `Answer saved for ${key}` });
+
+  } catch (err) {
+    console.error("Error saving answer:", err);
+    res.status(500).json({ error: "Failed to save answer" });
   }
 });
+
+
 
 module.exports = router;
